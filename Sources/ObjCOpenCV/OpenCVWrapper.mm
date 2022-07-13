@@ -42,6 +42,8 @@ using namespace std;
     UIImageToMat(image, src);
     cvtColor(src, gray, COLOR_BGR2GRAY);
     Canny(gray, dst, 50, 200, 3);
+    // convert to color
+    cvtColor(dst, dst, COLOR_GRAY2BGR);
     result = MatToUIImage(dst);
     return result;
 }

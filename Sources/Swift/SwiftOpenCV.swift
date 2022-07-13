@@ -6,7 +6,7 @@ public struct SwiftOpenCV {
         return OpenCVWrapper.openCVVersionString()
     }
 
-    public static func processImage(_ image: UIImage) -> UIImage? {
-        return OpenCVWrapper.processImage(image)
+    public static func Canny(_ image: UIImage) -> UIImage? {
+        return OpenCVWrapper.Canny(image)
     }
 }

@@ -5,6 +5,6 @@
 @interface OpenCVWrapper : NSObject
 
 + (NSString *)openCVVersionString;
-+ (UIImage *)processImage:(UIImage *)image;
++ (UIImage *)Canny:(UIImage *)image;
 
 @end

@@ -20,15 +20,15 @@ using namespace std;
     return [NSString stringWithFormat:@"OpenCV Version %s",  CV_VERSION];
 }
 
-+ (UIImage *)Canny:(UIImage *)image {
++ (UIImage *)canny:(UIImage *)image {
     @try {
-        return [OpenCVWrapper _CannyInternal:image];
+        return [OpenCVWrapper _cannyInternal:image];
     } @catch (...) {
         return nil;
     }
 }
 
-+ (UIImage *)_CannyInternal:(UIImage *)image{
++ (UIImage *)_cannyInternal:(UIImage *)image{
     if (!image) {
         return nil;
     }
@@ -42,7 +42,7 @@ using namespace std;
     UIImageToMat(image, src);
     cvtColor(src, gray, COLOR_BGR2GRAY);
     Canny(gray, dst, 50, 200, 3);
-    MatToUIImage(dst, result);
+    result = MatToUIImage(dst);
     return result;
 }
 @end

@@ -5,6 +5,9 @@
 @interface OpenCVWrapper : NSObject
 
 + (NSString *)openCVVersionString;
-+ (UIImage *)canny:(UIImage *)image;
 
+// canny edge detector
++ (UIImage *)canny:(UIImage *)image;
+// line detector (HoughLinesP)
++ (UIImage *)houghLines:(UIImage *)image;
 @end

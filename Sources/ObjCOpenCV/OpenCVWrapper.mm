@@ -43,7 +43,7 @@ using namespace std;
     cvtColor(src, gray, COLOR_BGR2GRAY);
     Canny(gray, dst, 50, 200, 3);
     // convert to color
-    cvtColor(dst, dst, COLOR_GRAY2BGR);
+    //cvtColor(dst, dst, COLOR_GRAY2BGR);
     result = MatToUIImage(dst);
     return result;
 }
@@ -61,37 +61,40 @@ using namespace std;
     if (!image) {
         return nil;
     }
-
     UIImage *result = image;
 
     Mat src;
     Mat gray;
-    Mat dst;
+    Mat edges;
 
     UIImageToMat(image, src);
-    cvtColor(src, gray, COLOR_BGR2GRAY);
-    Canny(gray, dst, 50, 200, 3);
+    cv::cvtColor(src, gray, COLOR_BGR2GRAY);
+    cv::Canny(gray, edges, 50, 200, 3);
 
-    // detect lines
-    vector<Vec2f> lines;
-    HoughLinesP(dst, lines, 1, CV_PI/180, 50, 50, 10);
+    float rho = 1.0;  // distance resolution in pixels of the Hough grid
+    float theta = CV_PI / 180; // angular resolution in radians of the Hough grid
+    float threshold = 15.0; // minimum number of votes (intersections in Hough grid cell)
+    float minLineLength = 50.0; // minimum number of pixels making up a line
+    float maxLineGap = 20.0; // maximum gap in pixels between connectable line segments
 
-    // draw lines
-    for (size_t i = 0; i < lines.size(); i++) {
-        float rho = lines[i][0], theta = lines[i][1];
-        Point pt1, pt2;
-        double a = cos(theta), b = sin(theta);
-        double x0 = a*rho, y0 = b*rho;
-        pt1.x = cvRound(x0 + 1000*(-b));
-        pt1.y = cvRound(y0 + 1000*(a));
-        pt2.x = cvRound(x0 - 1000*(-b));
-        pt2.y = cvRound(y0 - 1000*(a));
-        line(dst, pt1, pt2, Scalar(0,0,255), 3, LINE_AA);
+    // Run Hough on edge detected image
+    // Output "lines" is an array containing endpoints of detected line segments
+    std::vector<cv::Vec4i> lines;
+    cv::HoughLinesP(edges, lines, rho, theta, threshold, minLineLength, maxLineGap);
+
+    Mat result_lines;
+    cv::cvtColor(edges, result_lines, COLOR_GRAY2BGR);
+    // Draw lines on image if there are any
+    if (lines.size() > 0) {
+        for (size_t i = 0; i < lines.size(); i++) {
+            cv::Vec4i l = lines[i];
+            cv::line(result_lines, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(0, 0, 255), 3, cv::LINE_AA);
+            // visualize the end points of the detected lines
+            cv::circle(result_lines, cv::Point(l[0], l[1]), 3, cv::Scalar(0, 255, 0), -1);
+            cv::circle(result_lines, cv::Point(l[2], l[3]), 3, cv::Scalar(0, 255, 0), -1);
+        }
     }
-
-    // convert to color
-    cvtColor(dst, dst, COLOR_GRAY2BGR);
-    result = MatToUIImage(dst);
+    result = MatToUIImage(result_lines);
     return result;
 }
 @end

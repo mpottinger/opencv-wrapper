@@ -63,15 +63,11 @@ using namespace std;
     } else {
         median = v[v.size() / 2];
     }
-
-    /* apply automatic Canny edge detection using the computed median, lower and upper thresholds, just like the python example
-    lower = int(max(0, (1.0 - sigma) * v))
-    upper = int(min(255, (1.0 + sigma) * v))
-    edged = cv2.Canny(image, lower, upper)
-    */
+    // calculate the threshold
     float sigma=0.33f;
     float lower = int(max(0.0f, (1.0f - sigma) * median));
     float upper = int(min(255.0f, (1.0f + sigma) * median));
+    // apply the edge detector
     Canny(blurred, edges, lower, upper, 3);
 
     // convert to color

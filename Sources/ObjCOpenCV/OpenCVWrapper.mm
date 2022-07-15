@@ -43,7 +43,7 @@ using namespace std;
 
     UIImageToMat(image, src);
     cvtColor(src, gray, COLOR_BGR2GRAY);
-    GaussianBlur(gray, blurred, Size(3, 3), 0, 0, BORDER_DEFAULT);
+    GaussianBlur(gray, blurred, cv::Size(3, 3), 0, 0, BORDER_DEFAULT);
     float lower = 10;
     float upper = 200;
     // apply the edge detector

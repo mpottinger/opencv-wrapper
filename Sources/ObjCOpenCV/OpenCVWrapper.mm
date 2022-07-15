@@ -10,6 +10,8 @@
 #import <opencv2/imgcodecs/ios.h>
 
 #import <UIKit/UIKit.h>
+#import <opencl-c-base.h>
+#import <opencl-c.h>
 
 @implementation OpenCVWrapper
 
@@ -37,64 +39,45 @@ using namespace std;
     
     Mat src;
     Mat gray;
+    Mat blurred;
+    Mat edges;
     Mat dst;
 
     UIImageToMat(image, src);
     cvtColor(src, gray, COLOR_BGR2GRAY);
-    Canny(gray, dst, 50, 200, 3);
+    GaussianBlur(gray, blurred, Size(3, 3), 0, 0, BORDER_DEFAULT);
+    // compute the median of the single pixel intensities
+    float median = 0;
+    // vector to store the single pixel intensities
+    vector<int> v;
+    for (int i = 0; i < gray.rows; i++) {
+        for (int j = 0; j < gray.cols; j++) {
+            v.push_back(gray.at<uchar>(i, j));
+        }
+    }
+    // sort the vector
+    sort(v.begin(), v.end());
+    // get the median
+    if (v.size() % 2 == 0) {
+        median = (v[v.size() / 2 - 1] + v[v.size() / 2]) / 2.0;
+    } else {
+        median = v[v.size() / 2];
+    }
+
+    /* apply automatic Canny edge detection using the computed median, lower and upper thresholds, just like the python example
+    lower = int(max(0, (1.0 - sigma) * v))
+    upper = int(min(255, (1.0 + sigma) * v))
+    edged = cv2.Canny(image, lower, upper)
+    */
+    float sigma=0.33f;
+    float lower = int(max(0.0f, (1.0f - sigma) * median));
+    float upper = int(min(255.0f, (1.0f + sigma) * median));
+    Canny(blurred, edges, lower, upper, 3);
+
     // convert to color
-    //cvtColor(dst, dst, COLOR_GRAY2BGR);
+    cvtColor(edges, dst, COLOR_GRAY2BGR);
     result = MatToUIImage(dst);
     return result;
 }
 
-// line detector (HoughLinesP)
-+ (UIImage *)houghLines:(UIImage *)image {
-    @try {
-        return [OpenCVWrapper _houghLinesPInternal:image];
-    } @catch (...) {
-        return nil;
-    }
-}
-
-+ (UIImage *)_houghLinesPInternal:(UIImage *)image {
-    if (!image) {
-        return nil;
-    }
-    UIImage *result = image;
-
-    Mat src;
-    Mat gray;
-    Mat edges;
-
-    UIImageToMat(image, src);
-    cv::cvtColor(src, gray, COLOR_BGR2GRAY);
-    cv::Canny(gray, edges, 50, 200, 3);
-
-    float rho = 1.0;  // distance resolution in pixels of the Hough grid
-    float theta = CV_PI / 180; // angular resolution in radians of the Hough grid
-    float threshold = 15.0; // minimum number of votes (intersections in Hough grid cell)
-    float minLineLength = 50.0; // minimum number of pixels making up a line
-    float maxLineGap = 20.0; // maximum gap in pixels between connectable line segments
-
-    // Run Hough on edge detected image
-    // Output "lines" is an array containing endpoints of detected line segments
-    std::vector<cv::Vec4i> lines;
-    cv::HoughLinesP(edges, lines, rho, theta, threshold, minLineLength, maxLineGap);
-
-    Mat result_lines;
-    cv::cvtColor(edges, result_lines, COLOR_GRAY2BGR);
-    // Draw lines on image if there are any
-    if (lines.size() > 0) {
-        for (size_t i = 0; i < lines.size(); i++) {
-            cv::Vec4i l = lines[i];
-            cv::line(result_lines, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(0, 0, 255), 3, cv::LINE_AA);
-            // visualize the end points of the detected lines
-            cv::circle(result_lines, cv::Point(l[0], l[1]), 3, cv::Scalar(0, 255, 0), -1);
-            cv::circle(result_lines, cv::Point(l[2], l[3]), 3, cv::Scalar(0, 255, 0), -1);
-        }
-    }
-    result = MatToUIImage(result_lines);
-    return result;
-}
 @end

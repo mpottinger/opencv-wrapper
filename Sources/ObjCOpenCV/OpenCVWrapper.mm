@@ -50,7 +50,7 @@ using namespace std;
     Canny(blurred, edges, lower, upper, 3);
 
     // convert to color
-    cvtColor(edges, dst, COLOR_GRAY2BGR);
+    cvtColor(edges, dst, COLOR_GRAY2RGBA);
     result = MatToUIImage(dst);
     return result;
 }
